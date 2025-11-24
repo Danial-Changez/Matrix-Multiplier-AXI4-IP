@@ -1,0 +1,8 @@
+INFO: [VRFC 10-163] Analyzing VHDL file "C:/Vivado/ENGG 3050/Custom_Matrix_Multiplier/Pure_VHDL/Pure_VHDL.srcs/sources_1/new/matrix_pkg.vhd" into library xil_defaultlib
+INFO: [VRFC 10-163] Analyzing VHDL file "C:/Vivado/ENGG 3050/Custom_Matrix_Multiplier/Pure_VHDL/Pure_VHDL.srcs/sim_1/new/matrix_mult_tb.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'matrix_mult_tb'
+ERROR: [VRFC 10-719] formal port/generic <input_width> is not declared in <matrix_mult> [C:/Vivado/ENGG 3050/Custom_Matrix_Multiplier/Pure_VHDL/Pure_VHDL.srcs/sim_1/new/matrix_mult_tb.vhd:100]
+ERROR: [VRFC 10-719] formal port/generic <a_r1> is not declared in <matrix_mult> [C:/Vivado/ENGG 3050/Custom_Matrix_Multiplier/Pure_VHDL/Pure_VHDL.srcs/sim_1/new/matrix_mult_tb.vhd:102]
+ERROR: [VRFC 10-3353] formal port '\\\A_r1[0] \' has no actual or default value [C:/Vivado/ENGG 3050/Custom_Matrix_Multiplier/Pure_VHDL/Pure_VHDL.srcs/sim_1/new/matrix_mult_tb.vhd:99]
+ERROR: [VRFC 10-9458] unit 'behavioral' is ignored due to previous errors [C:/Vivado/ENGG 3050/Custom_Matrix_Multiplier/Pure_VHDL/Pure_VHDL.srcs/sim_1/new/matrix_mult_tb.vhd:37]
+INFO: [VRFC 10-8704] VHDL file 'C:/Vivado/ENGG 3050/Custom_Matrix_Multiplier/Pure_VHDL/Pure_VHDL.srcs/sim_1/new/matrix_mult_tb.vhd' is ignored due to errors

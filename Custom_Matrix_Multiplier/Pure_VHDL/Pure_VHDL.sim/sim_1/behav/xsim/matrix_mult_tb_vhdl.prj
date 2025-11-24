@@ -1,0 +1,10 @@
+# compile vhdl design source files
+vhdl xil_defaultlib  \
+"../../../../Pure_VHDL.srcs/sources_1/new/matrix_pkg.vhd" \
+"../../../../Pure_VHDL.srcs/sources_1/imports/hdl/multiplier.vhd" \
+"../../../../Pure_VHDL.srcs/sources_1/imports/hdl/ripple_carry_adder.vhd" \
+"../../../../Pure_VHDL.srcs/sources_1/imports/hdl/matrix_mult.vhd" \
+"../../../../Pure_VHDL.srcs/sim_1/new/matrix_mult_tb.vhd" \
+
+# Do not sort compile order
+nosort

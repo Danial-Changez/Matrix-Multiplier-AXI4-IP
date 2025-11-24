@@ -1,0 +1,3 @@
+Time resolution is 1 ps
+Note: All matrix_mult checks passed
+Time: 20 ns  Iteration: 0  Process: /matrix_mult_tb/stim  File: C:/Vivado/ENGG 3050/Custom_Matrix_Multiplier/Pure_VHDL/Pure_VHDL.srcs/sim_1/new/matrix_mult_tb.vhd
