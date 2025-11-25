@@ -4,7 +4,6 @@ _ide/
 .vitisWorkspace.json
 
 # Vivado/Vitis generated hardware exports
-*.xsa
 *.xpfm
 *.bit
 *.bin

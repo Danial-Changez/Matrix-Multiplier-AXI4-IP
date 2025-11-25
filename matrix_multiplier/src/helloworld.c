@@ -15,10 +15,12 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <xtimer_config.h>
 #include "platform.h"
 #include "xil_types.h"
 #include "xil_printf.h"
 #include "xparameters.h"
+#include "xiltimer.h"
 
 #define baseaddress XPAR_MATRIX_MULTIPLIER_0_BASEADDR
 
@@ -31,16 +33,29 @@ int main()
     init_platform();
 
     uint32_t *ba_p = (uint32_t *)baseaddress;
-    //
-    // Input matrix A
+
+    XTime start, end;
+    double time_seconds;
+    unsigned long long time_cycles;
+
+    // Loading input registers
+    //  Input matrix A
     *(ba_p+0) = pack(3,1,4);
     *(ba_p+1) = pack(1,5,9);
     *(ba_p+2) = pack(2,6,5);
 
-    // Input matrix B
+    //  Input matrix B
     *(ba_p+3) = pack(2,7,1);
     *(ba_p+4) = pack(8,2,8);
     *(ba_p+5) = pack(1,8,2);
+
+    // Time register write
+    XTime_GetTime(&start);
+    volatile uint32_t dummy_read = *(ba_p+6); 
+    XTime_GetTime(&end);
+    
+    time_cycles = end - start;
+    time_seconds = (double)time_cycles / (double)COUNTS_PER_SECOND;
 
     xil_printf("\n\rInput Registers A (Hex):\n\r");
     xil_printf("[ 0x%08x ]\n\r", *(ba_p+0));
@@ -61,6 +76,9 @@ int main()
     xil_printf("[ %05d %05d %05d ]\n\r", (int)(*(ba_p+6)), (int)(*(ba_p+7)), (int)(*(ba_p+8)));
     xil_printf("[ %05d %05d %05d ]\n\r", (int)(*(ba_p+9)), (int)(*(ba_p+10)), (int)(*(ba_p+11)));
     xil_printf("[ %05d %05d %05d ]\n\r", (int)(*(ba_p+12)), (int)(*(ba_p+13)), (int)(*(ba_p+14)));
+
+    xil_printf("Time to run AXI4 peripheral: %d seconds", time_seconds);
+    xil_printf("Cycles to run AXI4 peripheral: %d cycles", time_cycles);
     cleanup_platform();
     return 0;
 }

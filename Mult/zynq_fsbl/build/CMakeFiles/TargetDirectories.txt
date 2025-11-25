@@ -1,3 +1,0 @@
-C:/Vitis/Custom_Matrix_Multiplier/Mult/zynq_fsbl/build/CMakeFiles/fsbl.elf.dir
-C:/Vitis/Custom_Matrix_Multiplier/Mult/zynq_fsbl/build/CMakeFiles/edit_cache.dir
-C:/Vitis/Custom_Matrix_Multiplier/Mult/zynq_fsbl/build/CMakeFiles/rebuild_cache.dir
