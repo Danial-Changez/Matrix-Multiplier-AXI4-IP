@@ -1,21 +1,64 @@
-# Ignore build output directory
-/build
-/export
-
-# Ignore object files and dependent files
-.o
-.d
-
-#Ignore logs folder and log files
-/logs
-.log
-
-#Ignore lock files
-.lock
-
-.bin
-.pdi
+# IDE/workspace metadata
+_ide/
+**/_ide/
 .vitisWorkspace.json
 
-_ide/logs
-_ide/.wsdata
+# Vivado/Vitis generated hardware exports
+*.xsa
+*.xpfm
+*.bit
+*.bin
+*.pdi
+*.ltx
+*.wdb
+
+# Vivado auto-generated project folders
+**/*.cache/
+**/*.gen/
+**/*.hw/
+**/*.ip_user_files/
+**/*.runs/
+**/*.sim/
+**/*.tmp/
+**/.Xil/
+
+# Vitis platform/app build outputs
+**/build/
+**/export/
+Mult/hw/
+Mult/ps7_cortexa9_0/
+Mult/zynq_fsbl/
+**/.compile_commands/
+**/CMakeFiles/
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/build.ninja
+**/.ninja_deps
+**/.ninja_log
+**/.buildstatus
+**/.hash-map.txt
+**/compile_commands.json
+
+# Compiled objects and binaries
+*.o
+*.d
+*.a
+*.so
+*.dll
+*.lib
+*.exe
+*.elf
+*.elf.size
+*.map
+
+# Logs and temporary files
+*.log
+*.jou
+*.str
+*.rpt
+*.pb
+*.tmp
+*.lock
+
+# Tool-specific noise
+.rigel_lopper/
