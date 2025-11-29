@@ -6,17 +6,14 @@ A 3x3 unsigned matrix multiplier implemented in two ways:
 - Zynq-7000 (ZedBoard) HW/SW co-design with an AXI4-Lite wrapper and bare-metal driver.
 
 ## Table of Contents
-
-- [Custom Matrix Multiplier IP (3x3, 6-bit)](#custom-matrix-multiplier-ip-3x3-6-bit)
-  - [Table of Contents](#table-of-contents)
-  - [Repository Layout](#repository-layout)
-  - [Data Format and Register Map (AXI IP)](#data-format-and-register-map-axi-ip)
-  - [Boards and Tool Versions](#boards-and-tool-versions)
-  - [Build and Run: Hardware/Software Co-Design (Zynq)](#build-and-run-hardwaresoftware-co-design-zynq)
-  - [Build and Run: Pure VHDL (NEXYS A7-100T)](#build-and-run-pure-vhdl-nexys-a7-100t)
-  - [Design Notes](#design-notes)
-  - [Performance Comparison](#performance-comparison)
-  - [Results](#results)
+- [Repository Layout](#repository-layout)
+- [Data Format and Register Map (AXI IP)](#data-format-and-register-map-axi-ip)
+- [Boards and Tool Versions](#boards-and-tool-versions)
+- [Build and Run: Hardware/Software Co-Design (Zynq)](#build-and-run-hardwaresoftware-co-design-zynq)
+- [Build and Run: Pure VHDL (NEXYS A7-100T)](#build-and-run-pure-vhdl-nexys-a7-100t)
+- [Design Notes](#design-notes)
+- [Performance Comparison](#performance-comparison)
+- [Results](#results)
 
 ## Repository Layout
 
