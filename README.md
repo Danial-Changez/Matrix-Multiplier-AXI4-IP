@@ -17,11 +17,16 @@ A 3x3 unsigned matrix multiplier implemented in two ways:
 
 ## Repository Layout
 
-- `Custom_Matrix_Multiplier/Pure_VHDL/` — Vivado project for the pure VHDL build targeting NEXYS A7-100T.
-- `Custom_Matrix_Multiplier/ip_repo/matrix_multiplier_1_0/` — Custom AXI4-Lite 3x3 multiplier IP.
-- `Custom_Matrix_Multiplier/Block_Design/` — Vivado block design with Zynq PS, AXI interconnect, and `matrix_multiplier_1_0`, producing `zynq_design_1_wrapper.xsa`.
-- `matrix_multiplier/` — Vitis workspace for the driver that writes matrices, triggers the accelerator, and prints results with timing (`src/mm.c`).
-- `zynq_design_1_wrapper.xsa` — Hardware definition used by the Vitis custom platform component.
+- `Custom_Matrix_Multiplier/Pure_VHDL/`:
+  - Vivado project for the pure VHDL build targeting NEXYS A7-100T.
+- `Custom_Matrix_Multiplier/ip_repo/matrix_multiplier_1_0/`:
+  -  Custom AXI4-Lite 3x3 multiplier IP.
+- `Custom_Matrix_Multiplier/Block_Design/`:
+  - Vivado block design with Zynq PS, AXI interconnect, and `matrix_multiplier_1_0`, producing `zynq_design_1_wrapper.xsa`.
+- `matrix_multiplier/`:
+  - Vitis workspace for the driver that writes matrices, triggers the accelerator, and prints results with timing (`src/mm.c`).
+- `zynq_design_1_wrapper.xsa`:
+  -  Hardware definition used by the Vitis custom platform component.
 
 ## Data Format and Register Map (AXI IP)
 
@@ -64,15 +69,22 @@ Outputs are zero-extended to 32 bits with the adder carry in the MSB of the stor
 
 ## Performance Comparison
 
-- **Pure VHDL (fully combinational)**: worst-case critical path delay is 4.126 ns (Vivado post-implementation), so the 3x3 multiply finishes within one 10 ns period at 100 MHz. Implied Fmax ≈ 1 / 4.126 ns = 242 MHz.
-- **HW/SW co-design (AXI4-Lite + ARM)**: end-to-end latency from the ARM PS through AXI4-Lite averages 52 ns. Overhead is dominated by AXI transfers and software call latency; results are averaged over 1000 runs.
-- **Takeaway**: raw combinational IP is far faster than needed for 100 MHz; the co-design trades 48 ns of interface/software overhead for flexibility.
+- **Pure VHDL (fully combinational)**:
+  - Worst-case critical path delay is 4.126 ns (Vivado post-implementation), so the 3x3 multiply finishes within one 10 ns period at 100 MHz.
+  - Implied Fmax ≈ 1 / 4.126 ns = 242 MHz.
+- **HW/SW co-design (AXI4-Lite + ARM)**:
+  - End-to-end latency from the ARM PS through AXI4-Lite averages 52 ns.
+  - Overhead is dominated by AXI transfers and software call latency.
+  - Results are averaged over 1000 runs.
+- **Takeaway**:
+  - Raw combinational IP is far faster than needed for 100 MHz.
+  - The co-design trades 48 ns of interface/software overhead for flexibility.
 
 ## Results
 
-- **Block design (Zynq PS + AXI + IP):**  
+- **Block design (Zynq PS + AXI + IP)**:  
   ![Block design](images/block_design.png)
-- **RTL elaboration (VHDL core structure):**  
+- **RTL elaboration (VHDL core structure)**:  
   ![RTL elaboration](images/elaborated_design_VHDL.png)
 - **Post-implementation timing summary and waveform:**  
   ![Timing summary](images/post_implementation_timing_summary.png)  
