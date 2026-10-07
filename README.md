@@ -83,12 +83,12 @@ Outputs are zero-extended to 32 bits with the adder carry in the MSB of the stor
 ## Results
 
 - **Block design (Zynq PS + AXI + IP)**:  
-  ![Block design](images/block_design.png)
+  ![Block design](docs/images/block_design.png)
 - **RTL elaboration (VHDL core structure)**:  
-  ![RTL elaboration](images/elaborated_design_VHDL.png)
+  ![RTL elaboration](docs/images/elaborated_design_VHDL.png)
 - **Post-implementation timing summary and waveform:**  
-  ![Timing summary](images/post_implementation_timing_summary.png)  
-  ![Timing waveform](images/post_implementation_timing_waveform.png)
+  ![Timing summary](docs/images/post_implementation_timing_summary.png)  
+  ![Timing waveform](docs/images/post_implementation_timing_waveform.png)
 - **AXI4-Lite measured timing and console output (HW/SW co-design):**  
-  ![AXI timing](images/axi4_timing.png)  
-  ![AXI results](images/axi4_results.png)
+  ![AXI timing](docs/images/axi4_timing.png)  
+  ![AXI results](docs/images/axi4_results.png)
