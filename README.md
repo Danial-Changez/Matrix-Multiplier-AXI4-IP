@@ -35,6 +35,7 @@ constraints/    Nexys A7 pin and clock constraints
 sw/             Vitis application component (bare-metal C)
 scripts/        test runner
 docs/images/    screenshots referenced below
+docs/reports/   Vivado timing and utilisation reports referenced below
 vivado/         Vivado-generated files: packaged IP, block design, projects
 ```
 
@@ -103,27 +104,49 @@ are not style-checked and are analysed by GHDL as generated.
 GitHub Actions runs the style checks and `scripts/run_tests.sh` on every
 push and pull request.
 
-## Timing: what the committed results do and do not show
+## Timing and utilisation: what the committed results show
 
-**Nexys A7 build.** `constraints/nexys_a7.xdc` constrains the clock to
-10 ns (100 MHz). The post-implementation summary below reports a worst
-negative slack of 5.874 ns, worst hold slack of 0.188 ns and 49 setup
-endpoints, all constraints met.
+The reports in `docs/reports/` are Vivado 2025.1 output from the builds of
+20 November 2025, restored unmodified from this repository's first commit.
+The sources committed alongside them have not changed in logic since.
+
+**Zynq build: the multiplier between registers.** In the peripheral the
+multiplier sits between the input registers and the result registers, so
+its delay is on a clocked path. The PL clock `clk_fpga_0` is constrained to
+10 ns (100 MHz).
+[`zynq_design_1_wrapper_timing_summary_routed.rpt`](docs/reports/zynq_design_1_wrapper_timing_summary_routed.rpt)
+reports, after routing, a worst negative slack of 0.327 ns and a worst hold
+slack of 0.054 ns, with all constraints met. The worst path runs from
+`slv_reg0[18]` through the multiplier to `slv_reg7[11]`: 9.574 ns of data
+path delay (3.196 ns logic, 6.378 ns routing) over 11 logic levels. The
+unpipelined multiplier therefore uses almost the whole 100 MHz period.
+
+[`zynq_design_1_matrix_multiplier_0_7_utilization_synth.rpt`](docs/reports/zynq_design_1_matrix_multiplier_0_7_utilization_synth.rpt)
+is the out-of-context synthesis of the whole peripheral for the
+`xc7z020`: 1303 LUTs, 336 registers, 28 F7 muxes, no DSP blocks and no
+block RAM.
+
+**Nexys A7 build: not a measurement of the multiplier.**
+`constraints/nexys_a7.xdc` constrains the clock to 10 ns. The screenshot
+shows a worst negative slack of 5.874 ns, a worst hold slack of 0.188 ns
+and 49 setup endpoints.
 
 ![Timing summary](docs/images/post_implementation_timing_summary.png)
 
-This is the slack of the button and display logic. It is not a measurement
-of the multiplier: in this build the matrices are constants in
-`input_rom.vhd`, so the products can be computed at synthesis time, and the
-results go to the display pins without a register after them, so no
-clock-to-clock path runs through the multiplier.
+In this build the matrices are constants in `input_rom.vhd`, so the products
+can be computed at synthesis time, and the results go to the display pins
+without a register after them, so no clock-to-clock path runs through the
+multiplier.
+[`matrix_top_timing_summary_routed.rpt`](docs/reports/matrix_top_timing_summary_routed.rpt),
+from another run of the same design (5.800 ns slack), shows that the worst
+path is inside the display scan counter (`seven_seg/tick_count_reg[8]` to
+`tick_count_reg[0]`).
 
-**Zynq build.** The block design sets the CPU clock to 666.67 MHz and the
-PL clock (`FCLK_CLK0`) to 100 MHz. `mm.c` writes the two matrices once and
-then times a single AXI4-Lite read of result register 6 with
-`XTime_GetTime`, averaged over 1000 reads. The inputs are not rewritten
-inside the loop, so the figure is the cost of one register read from the
-ARM core, not of a multiplication.
+**What the C program measures.** The block design sets the CPU clock to
+666.67 MHz. `mm.c` writes the two matrices once and then times a single
+AXI4-Lite read of result register 6 with `XTime_GetTime`, averaged over
+1000 reads. The inputs are not rewritten inside the loop, so the figure is
+the cost of one register read from the ARM core, not of a multiplication.
 
 ![Program output](docs/images/axi4_timing.png)
 
@@ -132,8 +155,7 @@ which it converts to 52 ns with the BSP constant `COUNTS_PER_SECOND`. The
 BSP is not part of this repository and that conversion has not been
 checked against the timer's actual frequency.
 
-No committed report gives the combinational delay of the multiplier with
-variable inputs, the timing of the AXI peripheral, or resource utilisation.
+None of these builds has been re-run since the cleanup.
 
 ## Other screenshots
 

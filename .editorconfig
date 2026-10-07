@@ -14,7 +14,7 @@ indent_size = 2
 indent_size = 4
 
 # Vivado/Vitis write these files; leave them exactly as the tools emit them.
-[{vivado/**,sw/matrix_multiplier/src/{platform.c,platform.h,lscript.ld,*.cmake,CMakeLists.txt}}]
+[{vivado/**,docs/reports/**,sw/matrix_multiplier/src/{platform.c,platform.h,lscript.ld,*.cmake,CMakeLists.txt}}]
 end_of_line = unset
 insert_final_newline = unset
 trim_trailing_whitespace = unset

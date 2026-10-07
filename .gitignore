@@ -12,6 +12,8 @@ xsim.dir/
 *.log
 *.str
 *.rpt
+# ...except the reports kept as evidence for the numbers in the README
+!docs/reports/*.rpt
 *.pb
 *.dcp
 *.bit
