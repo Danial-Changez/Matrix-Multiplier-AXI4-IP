@@ -1,94 +1,176 @@
-# Custom Matrix Multiplier IP (3x3, 6-bit)
+# 3x3 Matrix Multiplier: AXI4-Lite Peripheral and Nexys A7 Demo
 
-A 3x3 unsigned matrix multiplier implemented in two ways:
+A combinational 3x3 unsigned matrix multiplier in VHDL (6-bit elements,
+14-bit results), built two ways:
 
-- Pure VHDL for Digilent NEXYS A7-100T.
-- Zynq-7000 (ZedBoard) HW/SW co-design with an AXI4-Lite wrapper and bare-metal driver.
+- as an AXI4-Lite peripheral for a Zynq-7000 (ZedBoard), with a bare-metal C
+  program that writes two matrices and prints the product;
+- as a stand-alone design for a Digilent Nexys A7-100T that multiplies two
+  constant matrices and shows the result on the seven-segment display.
 
-## Table of Contents
-- [Repository Layout](#repository-layout)
-- [Data Format and Register Map (AXI IP)](#data-format-and-register-map-axi-ip)
-- [Boards and Tool Versions](#boards-and-tool-versions)
-- [Build and Run: Hardware/Software Co-Design (Zynq)](#build-and-run-hardwaresoftware-co-design-zynq)
-- [Build and Run: Pure VHDL (NEXYS A7-100T)](#build-and-run-pure-vhdl-nexys-a7-100t)
-- [Design Notes](#design-notes)
-- [Performance Comparison](#performance-comparison)
-- [Results](#results)
+## What is hand-written and what is generated
 
-## Repository Layout
+| Part | Files | Origin |
+|------|-------|--------|
+| Multiplier core | `rtl/common/multiplier.vhd` (`p <= a * b`), `rtl/common/ripple_carry_adder.vhd`, `rtl/axi/matrix_mult.vhd`, `rtl/nexys_a7/matrix_mult.vhd`, `rtl/nexys_a7/matrix_pkg.vhd` | Hand-written |
+| Nexys A7 demo | `rtl/nexys_a7/input_rom.vhd`, `debouncer.vhd`, `seven_seg.vhd`, `matrix_top.vhd`, `constraints/nexys_a7.xdc` | Hand-written |
+| Testbenches | `tb/*.vhd`, `scripts/run_tests.sh` | Hand-written |
+| C program | `sw/matrix_multiplier/src/mm.c` | Hand-written |
+| AXI4-Lite slave | `vivado/ip_repo/matrix_multiplier_1_0/hdl/*.vhd` | Vivado's "Create and Package New IP" template. The hand edits are the user-logic section that instantiates `matrix_mult` and the nine result registers, which are loaded from the core instead of from the bus. |
+| IP packaging and driver | the rest of `vivado/ip_repo/matrix_multiplier_1_0/` (`component.xml`, `xgui/`, `bd/`, `example_designs/`, `drivers/`) | Vivado-generated. The driver is the generated stub: register offsets, read/write macros and a self-test; `matrix_multiplier.c` contains no functions. `mm.c` does not use it. |
+| Block design and projects | `vivado/Block_Design/` (`.bd`, `.xci`, `.xpr`, exported `.xsa`), `vivado/Pure_VHDL/Pure_VHDL.xpr` | Vivado-generated |
+| Vitis application scaffolding | `sw/matrix_multiplier/` except `mm.c` (`platform.c`, `platform.h`, CMake files, linker script) | Vitis `hello_world` template |
 
-- `Custom_Matrix_Multiplier/Pure_VHDL/`:
-  - Vivado project for the pure VHDL build targeting NEXYS A7-100T.
-- `Custom_Matrix_Multiplier/ip_repo/matrix_multiplier_1_0/`:
-  -  Custom AXI4-Lite 3x3 multiplier IP.
-- `Custom_Matrix_Multiplier/Block_Design/`:
-  - Vivado block design with Zynq PS, AXI interconnect, and `matrix_multiplier_1_0`, producing `zynq_design_1_wrapper.xsa`.
-- `matrix_multiplier/`:
-  - Vitis workspace for the driver that writes matrices, triggers the accelerator, and prints results with timing (`src/mm.c`).
-- `zynq_design_1_wrapper.xsa`:
-  -  Hardware definition used by the Vitis custom platform component.
+The arithmetic itself is small: 27 products, each a single `*` on two 6-bit
+operands, and two 14-bit ripple-carry adders per result element.
 
-## Data Format and Register Map (AXI IP)
+## Repository layout
 
-Each matrix row is packed into one 32-bit register using 8-bit fields (values should stay within 6-bit/0–63 per spec):
+```
+rtl/common/     multiplier and ripple-carry adder shared by both builds
+rtl/axi/        matrix_mult with 32-bit packed row ports, used by the AXI IP
+rtl/nexys_a7/   matrix_mult with array-typed ports, plus the Nexys A7 demo
+tb/             self-checking testbenches
+constraints/    Nexys A7 pin and clock constraints
+sw/             Vitis application component (bare-metal C)
+scripts/        test runner
+docs/images/    screenshots referenced below
+vivado/         Vivado-generated files: packaged IP, block design, projects
+```
 
-- `slv_reg0-slv_reg2`: A rows (`A1`, `A2`, `A3`)
-- `slv_reg3-slv_reg5`: B rows (`B1`, `B2`, `B3`)
-- `slv_reg6-slv_reg14`: Result rows (`P_a1..P_c3`)
+There are two `matrix_mult` entities because the two builds pass matrices
+differently (packed register words versus VHDL arrays). The arithmetic in
+both is the same, and each has its own testbench.
 
-Outputs are zero-extended to 32 bits with the adder carry in the MSB of the stored sum (`matrix_mult.vhd` uses `INPUT_WIDTH=6`, extends products to `SUMW`, then concatenates carry + sum to 32 bits).
+## Register map (AXI4-Lite peripheral)
 
-## Boards and Tool Versions
+32-bit registers, word-aligned offsets from the peripheral base address.
 
-- Vivado/Vitis 2025.1 (projects and IP cache built with this toolchain).
-- Pure VHDL target: Digilent NEXYS A7-100T (Artix-7) with seven-segment output in hexadecimal.
-- Co-design target: ZedBoard (Zynq-7000 PS + custom AXI4-Lite IP).
+| Offset | Register | Access | Contents |
+|--------|----------|--------|----------|
+| `0x00`-`0x08` | `slv_reg0`-`slv_reg2` | read/write | rows 1-3 of A |
+| `0x0C`-`0x14` | `slv_reg3`-`slv_reg5` | read/write | rows 1-3 of B |
+| `0x18`-`0x38` | `slv_reg6`-`slv_reg14` | read-only | A x B, row by row: P11, P12, P13, P21, ... P33 |
 
-## Build and Run: Hardware/Software Co-Design (Zynq)
+- A row register holds one element per byte: column 1 in bits 5:0, column 2
+  in bits 13:8, column 3 in bits 21:16. The other bits are stored and read
+  back but ignored by the multiplier.
+- A result register holds the sum in bits 13:0 and the carry out of the last
+  adder in bit 14. The largest possible result is 3 x 63 x 63 = 11907, so
+  the carry is always 0.
+- The core is combinational. The result registers capture its outputs on
+  every clock edge; there is no start or done bit.
 
-1. In Vitis 2025.1, create a custom platform component with `zynq_design_1_wrapper.xsa`.
-2. Import the app from `matrix_multiplier/` and select the platform component.
-3. Build the `matrix_multiplier` driver.
-4. Program the ZedBoard with the Vivado bitstream, then run the Vitis application on PS7.
-5. The app writes sample matrices, measures latency with `XTime_GetTime`, and prints input/output matrices in hex and decimal (`matrix_multiplier/src/mm.c`).
-6. To test other matrices, edit the `pack()` calls for A and B in `matrix_multiplier/src/mm.c`, rebuild, and rerun (keep per-element values <= 63).
+## Verification
 
-## Build and Run: Pure VHDL (NEXYS A7-100T)
+```sh
+scripts/run_tests.sh
+```
 
-1. Open `Custom_Matrix_Multiplier/Pure_VHDL/Pure_VHDL.xpr` in Vivado 2025.1.
-2. Customize matrix inputs under `Custom_Matrix_Multiplier\Pure_VHDL\Pure_VHDL.srcs\sources_1\new\input_rom.vhd`.
-3. Synthesize, implement, and generate the bitstream for NEXYS A7-100T.
-4. The design drives seven-segment displays with the 3x3 product in hex.
-5. Program the NEXYS A7-100T and verify output against your reference matrices.
+needs GHDL on the `PATH` (or `GHDL=/path/to/ghdl`). To run it in the
+container CI uses:
 
-## Design Notes
+```sh
+docker run --rm -v "$PWD":/src -w /src ghdl/ghdl:5.0.1-mcode-ubuntu-24.04 sh scripts/run_tests.sh
+```
 
-- RTL core (`matrix_mult.vhd`) slices each 32-bit AXI row into three 6-bit elements, multiplies all 9 combinations, and accumulates with two-stage ripple-carry adders per element.
-- AXI wrapper (`matrix_multiplier_slave_lite_v1_0_S00_AXI.vhd`) exposes 15 registers: 6 write-only inputs, 9 read-only results. Results update combinationally as soon as inputs change.
-- C driver uses `XPAR_MATRIX_MULTIPLIER_0_BASEADDR` from `xparameters.h` and accesses the registers directly; timing is PS-side only because the AXI peripheral is combinational.
+The script analyses the hand-written VHDL with `--std=08 -Wall -Werror`
+and runs three testbenches. A failed assertion ends the run with a non-zero
+exit status.
 
-## Performance Comparison
+| Testbench | Design under test | What it checks |
+|-----------|-------------------|----------------|
+| `matrix_mult_tb` | `rtl/nexys_a7/matrix_mult.vhd` | 9 corner cases (zero, all-63, identity, asymmetric) and 500 random matrix pairs against a product computed in the testbench |
+| `matrix_multiplier_axi_tb` | the packaged peripheral: Vivado's AXI slave with `rtl/axi/matrix_mult.vhd` | through AXI4-Lite transactions only: registers read zero after reset, input registers read back, 7 directed and 100 random products, unused field bits are ignored, result registers are read-only, write strobes |
+| `matrix_top_tb` | `rtl/nexys_a7/matrix_top.vhd` | after reset, all eight display digits show the first cell of the ROM product |
 
-- **Pure VHDL (fully combinational)**:
-  - Worst-case critical path delay is 4.126 ns (Vivado post-implementation), so the 3x3 multiply finishes within one 10 ns period at 100 MHz.
-  - Implied Fmax ≈ 1 / 4.126 ns = 242 MHz.
-- **HW/SW co-design (AXI4-Lite + ARM)**:
-  - End-to-end latency from the ARM PS through AXI4-Lite averages 52 ns.
-  - Overhead is dominated by AXI transfers and software call latency.
-  - Results are averaged over 1000 runs.
-- **Takeaway**:
-  - Raw combinational IP is far faster than needed for 100 MHz.
-  - The co-design trades 48 ns of interface/software overhead for flexibility.
+Not covered: the cycle button and its debouncer, back-to-back or stalled
+AXI transfers, and anything on hardware.
 
-## Results
+Style checks:
 
-- **Block design (Zynq PS + AXI + IP)**:  
+```sh
+pip install vsg==3.35.0 clang-format==22.1.8
+vsg -c vsg.yaml
+clang-format --dry-run --Werror sw/matrix_multiplier/src/mm.c
+```
+
+The VHDL follows the rule set documented by
+[VHDL Style Guide](https://vhdl-style-guide.readthedocs.io) (vsg defaults).
+`vsg.yaml` lists the few rules that deviate and why. Vivado-generated files
+are not style-checked and are analysed by GHDL as generated.
+
+GitHub Actions runs the style checks and `scripts/run_tests.sh` on every
+push and pull request.
+
+## Timing: what the committed results do and do not show
+
+**Nexys A7 build.** `constraints/nexys_a7.xdc` constrains the clock to
+10 ns (100 MHz). The post-implementation summary below reports a worst
+negative slack of 5.874 ns, worst hold slack of 0.188 ns and 49 setup
+endpoints, all constraints met.
+
+![Timing summary](docs/images/post_implementation_timing_summary.png)
+
+This is the slack of the button and display logic. It is not a measurement
+of the multiplier: in this build the matrices are constants in
+`input_rom.vhd`, so the products can be computed at synthesis time, and the
+results go to the display pins without a register after them, so no
+clock-to-clock path runs through the multiplier.
+
+**Zynq build.** The block design sets the CPU clock to 666.67 MHz and the
+PL clock (`FCLK_CLK0`) to 100 MHz. `mm.c` writes the two matrices once and
+then times a single AXI4-Lite read of result register 6 with
+`XTime_GetTime`, averaged over 1000 reads. The inputs are not rewritten
+inside the loop, so the figure is the cost of one register read from the
+ARM core, not of a multiplication.
+
+![Program output](docs/images/axi4_timing.png)
+
+The screenshot shows the program printing an average of 70 timer counts,
+which it converts to 52 ns with the BSP constant `COUNTS_PER_SECOND`. The
+BSP is not part of this repository and that conversion has not been
+checked against the timer's actual frequency.
+
+No committed report gives the combinational delay of the multiplier with
+variable inputs, the timing of the AXI peripheral, or resource utilisation.
+
+## Other screenshots
+
+- Block design (Zynq PS, AXI SmartConnect, reset block, `matrix_multiplier`):
   ![Block design](docs/images/block_design.png)
-- **RTL elaboration (VHDL core structure)**:  
-  ![RTL elaboration](docs/images/elaborated_design_VHDL.png)
-- **Post-implementation timing summary and waveform:**  
-  ![Timing summary](docs/images/post_implementation_timing_summary.png)  
-  ![Timing waveform](docs/images/post_implementation_timing_waveform.png)
-- **AXI4-Lite measured timing and console output (HW/SW co-design):**  
-  ![AXI timing](docs/images/axi4_timing.png)  
-  ![AXI results](docs/images/axi4_results.png)
+- Elaborated schematic of the Nexys A7 top level:
+  ![Elaborated design](docs/images/elaborated_design_VHDL.png)
+- Vivado simulation of `matrix_mult`. The outputs change together with the
+  inputs, so it shows function, not delay:
+  ![Simulation waveform](docs/images/post_implementation_timing_waveform.png)
+- Program output for A = [[1,2,3],[4,5,6],[7,8,9]] and
+  B = [[9,8,7],[6,5,4],[3,2,1]]:
+  ![Program output](docs/images/axi4_results.png)
+
+## Building for hardware
+
+Built with Vivado and Vitis 2025.1. These flows were last run before the
+sources were moved into the layout above; the project files reference the
+new paths but have not been reopened in Vivado since.
+
+**Zynq (ZedBoard, `xc7z020clg484-1`)**
+
+1. Open `vivado/Block_Design/Block_Design.xpr`. It takes the peripheral from
+   `vivado/ip_repo/`. Generate the bitstream and export the hardware, or use
+   the committed `vivado/Block_Design/zynq_design_1_wrapper.xsa`.
+2. In Vitis, open `sw/` as the workspace and create a platform component
+   named `Mult` from the XSA (standalone, `ps7_cortexa9_0`).
+3. Build the `matrix_multiplier` application component and run it on the
+   board. Output is on the PS UART at 115200 baud.
+4. To try other matrices, edit the `pack()` calls in `mm.c` (elements must
+   be 0-63).
+
+**Nexys A7-100T (`xc7a100tcsg324-1`)**
+
+1. Open `vivado/Pure_VHDL/Pure_VHDL.xpr`, generate the bitstream and program
+   the board.
+2. The display shows one cell of the product in hex on digits 0-3, its
+   column on digit 5 and its row on digit 7. The right button steps through
+   the nine cells; the centre button resets.
+3. The matrices are the constants in `rtl/nexys_a7/input_rom.vhd`.
