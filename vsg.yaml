@@ -1,0 +1,45 @@
+# Configuration for VHDL Style Guide (vsg), https://github.com/jeremiah-c-leary/vhdl-style-guide
+#
+# Style reference: the rule set documented at
+# https://vhdl-style-guide.readthedocs.io (the vsg defaults). Every rule
+# is at its default except the ones under `rule`, each with its reason.
+#
+# Only hand-written VHDL is checked. Files Vivado generates (vivado/) are
+# left exactly as the tool wrote them.
+file_list:
+  - rtl/common/*.vhd
+  - rtl/axi/*.vhd
+  - rtl/nexys_a7/*.vhd
+  - tb/*.vhd
+
+rule:
+  # Generics and constants are upper case. Both are fixed at elaboration,
+  # and the Vivado AXI template this code plugs into names its generics
+  # the same way (C_S_AXI_DATA_WIDTH).
+  generic_007:
+    case: upper
+  generic_map_002:
+    case: upper
+  constant_004:
+    case: upper
+  # Direct entity instantiation: no component declarations to keep in
+  # step with the entities.
+  instantiation_034:
+    method: entity
+  # Every entity here has exactly one architecture, so naming it in each
+  # instantiation adds nothing.
+  instantiation_036:
+    disable: true
+  # Initial values are kept: on Xilinx FPGAs they set the power-up state
+  # of the flip-flops, so removing them would change the hardware.
+  signal_007:
+    disable: true
+  # One-line case alternatives are allowed, without blank lines between
+  # them, so lookup tables (the seven-segment decoder) still read as
+  # tables.
+  case_012:
+    disable: true
+  case_200:
+    disable: true
+  case_201:
+    disable: true
