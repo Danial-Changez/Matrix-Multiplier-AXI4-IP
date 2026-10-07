@@ -1,12 +1,10 @@
-----------------------------------------------------------------------------------
 -- Top-level for Nexys A7: drives 3x3 matrix multiplier with ROM constants and
 -- shows selected cell on 8-digit seven-segment display.
 -- Digits:
 --   0-3: 4 hex nibbles of selected product (LSB -> digit0)
---   5  : row number (1..3)
---   7  : column number (1..3)
+--   5  : column number (1..3)
+--   7  : row number (1..3)
 -- Cycle button steps cells r1c1 -> r1c2 -> ... -> r3c3 -> wrap.
-----------------------------------------------------------------------------------
 
 library ieee;
   use ieee.std_logic_1164.all;
@@ -25,7 +23,6 @@ end entity matrix_top;
 
 architecture behavioral of matrix_top is
 
-  -- Matrix inputs (from ROM) and outputs
   signal a_r1 : elem_vec;
   signal a_r2 : elem_vec;
   signal a_r3 : elem_vec;
@@ -44,7 +41,6 @@ architecture behavioral of matrix_top is
 
   signal result_matrix : sum_matrix;
 
-  -- Cycling control
   signal cycle_debounced  : std_logic;
   signal cycle_prev       : std_logic            := '0';
   signal cell_idx         : unsigned(3 downto 0) := (others => '0'); -- 0..8
@@ -57,7 +53,6 @@ architecture behavioral of matrix_top is
 
 begin
 
-  -- Instantiate constant ROM for matrices A and B
   rom_inst : entity work.input_rom
     generic map (
       INPUT_WIDTH => INPUT_WIDTH
@@ -71,7 +66,6 @@ begin
       b_r3 => b_r3
     );
 
-  -- Matrix multiplier
   mm_inst : entity work.matrix_mult
     generic map (
       INPUT_WIDTH => INPUT_WIDTH
@@ -94,12 +88,11 @@ begin
       p_c3 => p_c3
     );
 
-  -- Collect results into array for easier indexing
+  -- An array, so the displayed cell can be selected by index.
   result_matrix(0)(0) <= p_a1; result_matrix(0)(1) <= p_a2; result_matrix(0)(2) <= p_a3;
   result_matrix(1)(0) <= p_b1; result_matrix(1)(1) <= p_b2; result_matrix(1)(2) <= p_b3;
   result_matrix(2)(0) <= p_c1; result_matrix(2)(1) <= p_c2; result_matrix(2)(2) <= p_c3;
 
-  -- Debounce cycle push button
   cycle_db : entity work.debouncer
     port map (
       clk      => clk,
@@ -108,7 +101,6 @@ begin
       o_button => cycle_debounced
     );
 
-  -- Cell index state machine
   process (clk, rst) is
   begin
 
@@ -129,16 +121,14 @@ begin
 
   end process;
 
-  -- Row/column decode (row = idx / 3, col = idx mod 3)
   row_idx <= resize(unsigned(cell_idx) / 3, row_idx'length);
   col_idx <= resize(unsigned(cell_idx) mod 3, col_idx'length);
 
   selected_sum <= result_matrix(to_integer(row_idx))(to_integer(col_idx));
 
-  -- Extend to 16 bits for 4 hex nibbles
+  -- Padded to 16 bits so it fills four hex digits.
   selected_ext <= "00" & selected_sum;
 
-  -- Prepare digit data
   digit_data(3 downto 0)   <= selected_ext(3 downto 0);                                  -- digit0
   digit_data(7 downto 4)   <= selected_ext(7 downto 4);                                  -- digit1
   digit_data(11 downto 8)  <= selected_ext(11 downto 8);                                 -- digit2
@@ -150,7 +140,6 @@ begin
 
   enable_mask <= "10101111"; -- digits 7,5,3,2,1,0 ON; digits 6 and 4 OFF
 
-  -- Seven-segment driver (active-low)
   seven_seg : entity work.seven_seg
     port map (
       clk         => clk,

@@ -1,8 +1,6 @@
-----------------------------------------------------------------------------------
 -- Simple 8-digit seven-segment multiplexing driver for Nexys A7 (active-low).
 -- Accepts eight 4-bit nibbles and per-digit enable mask, scans digits at a
 -- comfortable refresh rate to avoid flicker.
-----------------------------------------------------------------------------------
 
 library ieee;
   use ieee.std_logic_1164.all;
@@ -10,7 +8,7 @@ library ieee;
 
 entity seven_seg is
   generic (
-    CLOCK_FREQ   : positive := 100_000_000; -- 100 MHz
+    CLOCK_FREQ   : positive := 100_000_000; -- Hz
     SCAN_FREQ_HZ : positive := 4000         -- total scans per second (across 8 digits)
   );
   port (
@@ -69,7 +67,6 @@ architecture behavioral of seven_seg is
 
 begin
 
-  -- Scan timer and digit index
   process (clk, rst) is
   begin
 
@@ -91,12 +88,11 @@ begin
 
   end process;
 
-  -- Combinational: select nibble, anodes, segments
   process (scan_idx, digit_data, enable_mask) is
   begin
 
     an_next  <= (others => '1');                               -- all off by default (active low)
-    seg_next <= "1111111";                                     -- blank
+    seg_next <= "1111111";                                     -- all segments off
 
     case scan_idx is
       when "000" => nibble <= digit_data(3 downto 0);
@@ -111,7 +107,7 @@ begin
     end case;
 
     if (enable_mask(to_integer(scan_idx)) = '1') then
-      an_next(to_integer(scan_idx)) <= '0';                    -- enable digit
+      an_next(to_integer(scan_idx)) <= '0';
       seg_next                      <= nibble_to_segs(nibble);
     end if;
 

@@ -1,34 +1,7 @@
-----------------------------------------------------------------------------------
--- Company:
--- Engineer:
---
--- Create Date: 11/20/2025 04:45:52 PM
--- Design Name:
--- Module Name: input_rom - Behavioral
--- Project Name:
--- Target Devices:
--- Tool Versions:
--- Description:
---
--- Dependencies:
---
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
---
-----------------------------------------------------------------------------------
-
 library ieee;
   use ieee.std_logic_1164.all;
-
-  -- Uncomment the following library declaration if using
-  -- arithmetic functions with Signed or Unsigned values
   use ieee.numeric_std.all;
   use work.matrix_pkg.all;
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
--- library UNISIM;
--- use UNISIM.VComponents.all;
 
 entity input_rom is
   generic (
@@ -104,7 +77,6 @@ architecture behavioral of input_rom is
 
 begin
 
-  -- Drive constant matrices
   a_r1 <= A(0);
   a_r2 <= A(1);
   a_r3 <= A(2);

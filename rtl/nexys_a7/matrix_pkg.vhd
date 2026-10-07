@@ -1,40 +1,12 @@
-----------------------------------------------------------------------------------
--- Company:
--- Engineer:
---
--- Create Date: 11/20/2025 05:05:53 PM
--- Design Name:
--- Module Name: matrix_pkg - Behavioral
--- Project Name:
--- Target Devices:
--- Tool Versions:
--- Description:
---
--- Dependencies:
---
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
---
-----------------------------------------------------------------------------------
-
 library ieee;
   use ieee.std_logic_1164.all;
-
-  -- Uncomment the following library declaration if using
-  -- arithmetic functions with Signed or Unsigned values
   use ieee.numeric_std.all;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
--- library UNISIM;
--- use UNISIM.VComponents.all;
 
 package matrix_pkg is
 
   constant INPUT_WIDTH : positive := 6;
-  constant PRODW       : positive := 2 * INPUT_WIDTH; -- 12 bits
-  constant SUMW        : positive := PRODW + 2;       -- 14 bits (sum of three products)
+  constant PRODW       : positive := 2 * INPUT_WIDTH;
+  constant SUMW        : positive := PRODW + 2;       -- two extra bits: the sum of three products cannot overflow
 
   subtype elem_t is std_logic_vector(INPUT_WIDTH - 1 downto 0);
 

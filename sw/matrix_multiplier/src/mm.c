@@ -1,16 +1,13 @@
 /*
- * mm.c: 3x3 Matrix Multiplier
+ * Writes two fixed 3x3 matrices to the matrix_multiplier AXI4-Lite peripheral
+ * and prints the inputs and the nine result registers on the PS UART.
  *
- * This application configures UART 16550 to baud rate 9600.
- * PS7 UART (Zynq) is not initialized by this application, since
- * bootrom/bsp configures it to baud rate 115200
+ * Registers 0-2 hold the rows of A, 3-5 the rows of B (one element per byte),
+ * and 6-14 the read-only results.
  *
- * ------------------------------------------------
- * | UART TYPE   BAUD RATE                        |
- * ------------------------------------------------
- *   uartns550   9600
- *   uartlite    Configurable only in HW design
- *   ps7_uart    115200 (configured by bootrom/bsp)
+ * The timing loop measures one AXI4-Lite read of result register 6, averaged
+ * over N reads. The inputs are written once, before the loop, so it does not
+ * time a multiplication.
  */
 
 #include <stdint.h>
@@ -34,18 +31,14 @@ int main() {
     uint64_t sum_cycles = 0;
     uint32_t *ba_p = (uint32_t *)baseaddress;
 
-    // Loading input registers
-    //  Input matrix A
     *(ba_p + 0) = pack(1, 2, 3);
     *(ba_p + 1) = pack(4, 5, 6);
     *(ba_p + 2) = pack(7, 8, 9);
 
-    //  Input matrix B
     *(ba_p + 3) = pack(9, 8, 7);
     *(ba_p + 4) = pack(6, 5, 4);
     *(ba_p + 5) = pack(3, 2, 1);
 
-    // Average register write time
     for (int i = 0; i < N; i++) {
         XTime start, end;
         XTime_GetTime(&start);

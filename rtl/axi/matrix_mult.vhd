@@ -1,34 +1,5 @@
-----------------------------------------------------------------------------------
--- Company:
--- Engineer:
---
--- Create Date: 11/19/2025 11:50:19 PM
--- Design Name:
--- Module Name: matrix_mult - Behavioral
--- Project Name:
--- Target Devices:
--- Tool Versions:
--- Description:
---
--- Dependencies:
---
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
---
-----------------------------------------------------------------------------------
-
 library ieee;
   use ieee.std_logic_1164.all;
-
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
--- use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
--- library UNISIM;
--- use UNISIM.VComponents.all;
 
 entity matrix_mult is
   generic (
@@ -56,10 +27,8 @@ end entity matrix_mult;
 
 architecture behavioral of matrix_mult is
 
-  constant PRODW : positive := 2 * INPUT_WIDTH; -- Bits per element product
-  constant SUMW  : positive := PRODW + 2;       -- Add 2 more bits for sum of 3 products
-
-  -- Subtypes for elements, products, and sum
+  constant PRODW : positive := 2 * INPUT_WIDTH;
+  constant SUMW  : positive := PRODW + 2; -- two extra bits: the sum of three products cannot overflow
 
   subtype elem_t is std_logic_vector(INPUT_WIDTH - 1 downto 0);
 
@@ -67,23 +36,21 @@ architecture behavioral of matrix_mult is
 
   subtype sum_t is std_logic_vector(SUMW - 1 downto 0);
 
-  -- Types for different matrices
-
   type elem_vec is array(0 to 2) of elem_t;
 
   type elem_matrix is array(0 to 2) of elem_vec;
 
-  type prod_vec is array(0 to 2) of prod_t; -- 1x3 Row
+  type prod_vec is array(0 to 2) of prod_t;
 
-  type prod_plane is array(0 to 2) of prod_vec; -- 3x3 Matrix
+  type prod_plane is array(0 to 2) of prod_vec;
 
-  type prod_matrix is array(0 to 2) of prod_plane; -- 3x3x3 Matrix to store partial products
+  type prod_matrix is array(0 to 2) of prod_plane; -- (row)(column)(k): one product per term of each dot product
 
   type sum_row is array(0 to 2) of sum_t;
 
   type sum_matrix is array(0 to 2) of sum_row;
 
-  type sum_cube is array(0 to 2) of sum_matrix; -- 3x3x3 of SUMW-wide values
+  type sum_cube is array(0 to 2) of sum_matrix; -- the same products, zero-extended to SUMW
 
   type bit_row is array(0 to 2) of std_logic;
 
@@ -96,7 +63,8 @@ architecture behavioral of matrix_mult is
   signal add1_sum,  add2_sum  : sum_matrix;
   signal add1_cout, add2_cout : bit_matrix;
 
-  -- Concatenate 0 to remaining bits for AXI registers
+  -- Result register layout: sum in the low SUMW bits, the last adder's carry
+  -- in the next bit, zeros above.
 
   function concatenate (
     s : sum_t;
@@ -115,7 +83,8 @@ architecture behavioral of matrix_mult is
 
 begin
 
-  -- Split incoming rows into 6-bit elements
+  -- A row register carries three elements in 8-bit fields; only the low
+  -- INPUT_WIDTH bits of each field are used.
   a_mat(0)(0) <= a_r1(INPUT_WIDTH - 1 downto 0);
   a_mat(0)(1) <= a_r1(8 + INPUT_WIDTH - 1 downto 8);
   a_mat(0)(2) <= a_r1(16 + INPUT_WIDTH - 1 downto 16);
@@ -136,7 +105,7 @@ begin
   b_mat(2)(1) <= b_r3(8 + INPUT_WIDTH - 1 downto 8);
   b_mat(2)(2) <= b_r3(16 + INPUT_WIDTH - 1 downto 16);
 
-  -- Multiply : Product = A(row, k) * B(k, col)
+  -- prod(i)(j)(k) = A(i, k) * B(k, j)
 
   gen_rows : for i in 0 to 2 generate
 
@@ -157,7 +126,6 @@ begin
         prod_ext(i)(j)(k) <= (SUMW - PRODW - 1 downto 0 => '0') & prod(i)(j)(k);
       end generate gen_k;
 
-      -- First addition
       add_part1 : entity work.ripple_carry_adder
         generic map (
           WIDTH => SUMW
@@ -170,7 +138,6 @@ begin
           cout => add1_cout(i)(j)
         );
 
-      -- Second addition
       add_part2 : entity work.ripple_carry_adder
         generic map (
           WIDTH => SUMW
@@ -187,7 +154,6 @@ begin
 
   end generate gen_rows;
 
-  -- Assign to outputs
   p_a1 <= concatenate(add2_sum(0)(0), add2_cout(0)(0));
   p_a2 <= concatenate(add2_sum(0)(1), add2_cout(0)(1));
   p_a3 <= concatenate(add2_sum(0)(2), add2_cout(0)(2));

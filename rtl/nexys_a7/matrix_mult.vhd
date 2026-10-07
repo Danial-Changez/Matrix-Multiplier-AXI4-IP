@@ -1,23 +1,3 @@
-----------------------------------------------------------------------------------
--- Company:
--- Engineer:
---
--- Create Date: 11/19/2025 11:50:19 PM
--- Design Name:
--- Module Name: matrix_mult - Behavioral
--- Project Name:
--- Target Devices:
--- Tool Versions:
--- Description:
---
--- Dependencies:
---
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
---
-----------------------------------------------------------------------------------
-
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
@@ -58,7 +38,6 @@ architecture behavioral of matrix_mult is
 
 begin
 
-  -- Map row inputs into 3x3 matrices
   a_mat(0) <= a_r1;
   a_mat(1) <= a_r2;
   a_mat(2) <= a_r3;
@@ -66,7 +45,7 @@ begin
   b_mat(1) <= b_r2;
   b_mat(2) <= b_r3;
 
-  -- Multiply : Product = A(row, k) * B(k, col)
+  -- prod(i)(j)(k) = A(i, k) * B(k, j)
 
   gen_rows : for i in 0 to 2 generate
 
@@ -86,12 +65,11 @@ begin
 
       end generate gen_k;
 
-      -- Zero-extend products to SUMW for addition
+      -- SUMW-wide operands, so the sum of three products cannot overflow.
       prod_ext0(i)(j) <= std_logic_vector(resize(unsigned(prod(i)(j)(0)), SUMW));
       prod_ext1(i)(j) <= std_logic_vector(resize(unsigned(prod(i)(j)(1)), SUMW));
       prod_ext2(i)(j) <= std_logic_vector(resize(unsigned(prod(i)(j)(2)), SUMW));
 
-      -- First addition
       add_part1 : entity work.ripple_carry_adder
         generic map (
           WIDTH => SUMW
@@ -104,7 +82,6 @@ begin
           cout => add1_cout(i)(j)
         );
 
-      -- Second addition
       add_part2 : entity work.ripple_carry_adder
         generic map (
           WIDTH => SUMW
@@ -121,7 +98,6 @@ begin
 
   end generate gen_rows;
 
-  -- Assign summed products
   p_a1 <= add2_sum(0)(0);
   p_a2 <= add2_sum(0)(1);
   p_a3 <= add2_sum(0)(2);

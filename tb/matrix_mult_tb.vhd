@@ -1,34 +1,7 @@
-----------------------------------------------------------------------------------
--- Company:
--- Engineer:
---
--- Create Date: 11/20/2025 05:21:56 PM
--- Design Name:
--- Module Name: matrix_mult_tb - Behavioral
--- Project Name:
--- Target Devices:
--- Tool Versions:
--- Description:
---
--- Dependencies:
---
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
---
-----------------------------------------------------------------------------------
-
 library ieee;
   use ieee.std_logic_1164.all;
-
-  -- Uncomment the following library declaration if using
-  -- arithmetic functions with Signed or Unsigned values
   use ieee.numeric_std.all;
   use work.matrix_pkg.all;
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
--- library UNISIM;
--- use UNISIM.VComponents.all;
 
 entity matrix_mult_tb is
 end entity matrix_mult_tb;
@@ -54,23 +27,23 @@ architecture behavioral of matrix_mult_tb is
 
   constant A_IN : elem_matrix :=
   (
-    0 => (            std_logic_vector(to_unsigned(1, INPUT_WIDTH)),            std_logic_vector(to_unsigned(2, INPUT_WIDTH)),            std_logic_vector(to_unsigned(3, INPUT_WIDTH))        ),
-    1 => (            std_logic_vector(to_unsigned(4, INPUT_WIDTH)),            std_logic_vector(to_unsigned(5, INPUT_WIDTH)),            std_logic_vector(to_unsigned(6, INPUT_WIDTH))        ),
-    2 => (            std_logic_vector(to_unsigned(7, INPUT_WIDTH)),            std_logic_vector(to_unsigned(0, INPUT_WIDTH)),            std_logic_vector(to_unsigned(2, INPUT_WIDTH))        )
+    0 => (std_logic_vector(to_unsigned(1, INPUT_WIDTH)),            std_logic_vector(to_unsigned(2, INPUT_WIDTH)),            std_logic_vector(to_unsigned(3, INPUT_WIDTH))),
+    1 => (std_logic_vector(to_unsigned(4, INPUT_WIDTH)),            std_logic_vector(to_unsigned(5, INPUT_WIDTH)),            std_logic_vector(to_unsigned(6, INPUT_WIDTH))),
+    2 => (std_logic_vector(to_unsigned(7, INPUT_WIDTH)),            std_logic_vector(to_unsigned(0, INPUT_WIDTH)),            std_logic_vector(to_unsigned(2, INPUT_WIDTH)))
   );
 
   constant B_IN : elem_matrix :=
   (
-    0 => (            std_logic_vector(to_unsigned(1, INPUT_WIDTH)),            std_logic_vector(to_unsigned(0, INPUT_WIDTH)),            std_logic_vector(to_unsigned(1, INPUT_WIDTH))        ),
-    1 => (            std_logic_vector(to_unsigned(2, INPUT_WIDTH)),            std_logic_vector(to_unsigned(1, INPUT_WIDTH)),            std_logic_vector(to_unsigned(0, INPUT_WIDTH))        ),
-    2 => (            std_logic_vector(to_unsigned(3, INPUT_WIDTH)),            std_logic_vector(to_unsigned(4, INPUT_WIDTH)),            std_logic_vector(to_unsigned(5, INPUT_WIDTH))        )
+    0 => (std_logic_vector(to_unsigned(1, INPUT_WIDTH)),            std_logic_vector(to_unsigned(0, INPUT_WIDTH)),            std_logic_vector(to_unsigned(1, INPUT_WIDTH))),
+    1 => (std_logic_vector(to_unsigned(2, INPUT_WIDTH)),            std_logic_vector(to_unsigned(1, INPUT_WIDTH)),            std_logic_vector(to_unsigned(0, INPUT_WIDTH))),
+    2 => (std_logic_vector(to_unsigned(3, INPUT_WIDTH)),            std_logic_vector(to_unsigned(4, INPUT_WIDTH)),            std_logic_vector(to_unsigned(5, INPUT_WIDTH)))
   );
 
   constant EXP : sum_matrix :=
   (
-    0 => (            std_logic_vector(to_unsigned(14, SUMW)),            std_logic_vector(to_unsigned(14, SUMW)),            std_logic_vector(to_unsigned(16, SUMW))        ),
-    1 => (            std_logic_vector(to_unsigned(32, SUMW)),            std_logic_vector(to_unsigned(29, SUMW)),            std_logic_vector(to_unsigned(34, SUMW))        ),
-    2 => (            std_logic_vector(to_unsigned(13, SUMW)),            std_logic_vector(to_unsigned(8, SUMW)),            std_logic_vector(to_unsigned(17, SUMW))        )
+    0 => (std_logic_vector(to_unsigned(14, SUMW)),            std_logic_vector(to_unsigned(14, SUMW)),            std_logic_vector(to_unsigned(16, SUMW))),
+    1 => (std_logic_vector(to_unsigned(32, SUMW)),            std_logic_vector(to_unsigned(29, SUMW)),            std_logic_vector(to_unsigned(34, SUMW))),
+    2 => (std_logic_vector(to_unsigned(13, SUMW)),            std_logic_vector(to_unsigned(8, SUMW)),            std_logic_vector(to_unsigned(17, SUMW)))
   );
 
 begin

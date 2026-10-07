@@ -1,39 +1,10 @@
-----------------------------------------------------------------------------------
--- Company:
--- Engineer:
---
--- Create Date: 11/20/2025 01:18:11 AM
--- Design Name:
--- Module Name: debouncer - Behavioral
--- Project Name:
--- Target Devices:
--- Tool Versions:
--- Description:
---
--- Dependencies:
---
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
---
-----------------------------------------------------------------------------------
-
 library ieee;
   use ieee.std_logic_1164.all;
 
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
--- use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
--- library UNISIM;
--- use UNISIM.VComponents.all;
-
 entity debouncer is
   generic (
-    DEBOUNCE_TIME : positive := 10;         -- 10ms
-    CLOCK_FREQ    : positive := 100_000_000 -- 100 MHz
+    DEBOUNCE_TIME : positive := 10;         -- milliseconds
+    CLOCK_FREQ    : positive := 100_000_000 -- Hz
   );
   port (
     clk      : in    std_logic;
@@ -62,13 +33,12 @@ begin
       debounced_btn <= '0';
       counter       <= 0;
     elsif rising_edge(clk) then
-      -- Synchorinze
+      -- Two flip-flops because the button is asynchronous to clk.
       sync_reg1 <= i_button;
       sync_reg2 <= sync_reg1;
 
-      -- Debounce logic
       if (sync_reg2 /= debounced_btn) then
-        -- Input changed, start/rst counter
+        -- A new level is accepted only after it has held for LIMIT clocks.
         if (counter < LIMIT) then
           counter <= counter + 1;
         else
@@ -76,7 +46,6 @@ begin
           counter       <= 0;
         end if;
       else
-        -- Input is already stable, rst counter
         counter <= 0;
       end if;
     end if;
