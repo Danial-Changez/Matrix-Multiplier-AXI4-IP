@@ -16,15 +16,15 @@ end entity debouncer;
 
 architecture behavioral of debouncer is
 
-  signal   sync_reg1     : std_logic                                              := '0';
-  signal   sync_reg2     : std_logic                                              := '0';
-  signal   debounced_btn : std_logic                                              := '0';
-  signal   counter       : natural range 0 to (DEBOUNCE_TIME * CLOCK_FREQ / 1000) := 0;
-  constant LIMIT         : natural                                                := DEBOUNCE_TIME * CLOCK_FREQ / 1000;
+  constant STABLE_TICKS  : natural                         := DEBOUNCE_TIME * CLOCK_FREQ / 1000;
+  signal   sync_reg1     : std_logic                       := '0';
+  signal   sync_reg2     : std_logic                       := '0';
+  signal   debounced_btn : std_logic                       := '0';
+  signal   counter       : natural range 0 to STABLE_TICKS := 0;
 
 begin
 
-  process (clk, rst) is
+  debounce : process (clk, rst) is
   begin
 
     if (rst = '1') then
@@ -38,8 +38,8 @@ begin
       sync_reg2 <= sync_reg1;
 
       if (sync_reg2 /= debounced_btn) then
-        -- A new level is accepted only after it has held for LIMIT clocks.
-        if (counter < LIMIT) then
+        -- A new level is accepted only after it has held for STABLE_TICKS clocks.
+        if (counter < STABLE_TICKS) then
           counter <= counter + 1;
         else
           debounced_btn <= sync_reg2;
@@ -50,7 +50,7 @@ begin
       end if;
     end if;
 
-  end process;
+  end process debounce;
 
   o_button <= debounced_btn;
 

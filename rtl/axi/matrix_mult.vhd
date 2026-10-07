@@ -72,10 +72,11 @@ architecture behavioral of matrix_mult is
   )
     return std_logic_vector is
 
-    variable tmp : std_logic_vector(DATA_WIDTH - 1 downto 0) := (others => '0');
+    variable tmp : std_logic_vector(DATA_WIDTH - 1 downto 0);
 
   begin
 
+    tmp                := (others => '0');
     tmp(SUMW downto 0) := c & s;
     return tmp;
 

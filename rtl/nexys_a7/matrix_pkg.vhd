@@ -33,7 +33,3 @@ package matrix_pkg is
   type bit_matrix is array(0 to 2) of bit_vec;
 
 end package matrix_pkg;
-
-package body matrix_pkg is
-
-end package body matrix_pkg;

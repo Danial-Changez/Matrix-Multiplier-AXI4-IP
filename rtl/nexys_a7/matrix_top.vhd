@@ -101,7 +101,7 @@ begin
       o_button => cycle_debounced
     );
 
-  process (clk, rst) is
+  select_cell : process (clk, rst) is
   begin
 
     if (rst = '1') then
@@ -119,7 +119,7 @@ begin
       end if;
     end if;
 
-  end process;
+  end process select_cell;
 
   row_idx <= resize(unsigned(cell_idx) / 3, row_idx'length);
   col_idx <= resize(unsigned(cell_idx) mod 3, col_idx'length);

@@ -8,7 +8,7 @@ entity ripple_carry_adder is
   port (
     a    : in    std_logic_vector(WIDTH - 1 downto 0);
     b    : in    std_logic_vector(WIDTH - 1 downto 0);
-    cin  : in    std_logic := '0';
+    cin  : in    std_logic;
     sum  : out   std_logic_vector(WIDTH - 1 downto 0);
     cout : out   std_logic
   );

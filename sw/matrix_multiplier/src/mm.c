@@ -19,8 +19,9 @@
 #include "xparameters.h"
 #include "xiltimer.h"
 
-#define baseaddress XPAR_MATRIX_MULTIPLIER_0_BASEADDR
+#define BASE_ADDR XPAR_MATRIX_MULTIPLIER_0_BASEADDR
 #define N 1000
+
 uint32_t pack(int a1, int a2, int a3) {
     return (uint32_t)a1 + ((uint32_t)a2 << 8) + ((uint32_t)a3 << 16);
 }
@@ -29,7 +30,7 @@ int main() {
     init_platform();
 
     uint64_t sum_cycles = 0;
-    uint32_t *ba_p = (uint32_t *)baseaddress;
+    uint32_t *ba_p = (uint32_t *)BASE_ADDR;
 
     *(ba_p + 0) = pack(1, 2, 3);
     *(ba_p + 1) = pack(4, 5, 6);

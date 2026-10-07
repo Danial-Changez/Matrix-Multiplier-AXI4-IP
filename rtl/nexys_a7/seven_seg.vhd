@@ -23,9 +23,9 @@ end entity seven_seg;
 
 architecture behavioral of seven_seg is
 
-  constant TICKS_PER_SCAN : positive                           := CLOCK_FREQ / SCAN_FREQ_HZ;
-  signal   tick_count     : positive range 0 to TICKS_PER_SCAN := 0;
-  signal   scan_idx       : unsigned(2 downto 0)               := (others => '0'); -- 0..7
+  constant TICKS_PER_SCAN : positive                          := CLOCK_FREQ / SCAN_FREQ_HZ;
+  signal   tick_count     : natural range 0 to TICKS_PER_SCAN := 0;
+  signal   scan_idx       : unsigned(2 downto 0)              := (others => '0'); -- 0..7
 
   function nibble_to_segs (
     n : std_logic_vector(3 downto 0)
@@ -67,7 +67,7 @@ architecture behavioral of seven_seg is
 
 begin
 
-  process (clk, rst) is
+  scan : process (clk, rst) is
   begin
 
     if (rst = '1') then
@@ -86,9 +86,9 @@ begin
       end if;
     end if;
 
-  end process;
+  end process scan;
 
-  process (scan_idx, digit_data, enable_mask) is
+  decode : process (scan_idx, digit_data, enable_mask, nibble) is
   begin
 
     an_next  <= (others => '1');                               -- all off by default (active low)
@@ -111,7 +111,7 @@ begin
       seg_next                      <= nibble_to_segs(nibble);
     end if;
 
-  end process;
+  end process decode;
 
   an  <= an_next;
   seg <= seg_next;
